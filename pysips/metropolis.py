@@ -97,21 +97,11 @@ class Metropolis(VectorMCMC):
         num_samples : int
             number of samples in the chain; includes burnin
         log_likes : array-like, optional
-            Initial log likelihoods, one per input particle. When provided,
-            reuse them instead of reevaluating the initial population.
+            Accepted for compatibility with kernels supplying cached likelihoods.
+            Symbolic likelihoods refit model constants, so initialize them again
+            as before rather than changing the existing refitting behavior.
         """
-        if log_likes is None:
-            log_priors, log_like = self._initialize_probabilities(inputs)
-        else:
-            # Keep compatibility with older SMCPy initializers that only take inputs.
-            log_like = np.asarray(log_likes).reshape(-1, 1)
-            if log_like.shape[0] != inputs.shape[0]:
-                raise ValueError(
-                    "log_likes.shape[0] != number inputs: "
-                    f"{log_like.shape[0]} != {inputs.shape[0]}"
-                )
-            log_priors = self.evaluate_log_priors(inputs)
-            self._check_log_priors_for_zero_probability(log_priors)
+        log_priors, log_like = self._initialize_probabilities(inputs)
 
         for _ in range(num_samples):
 
