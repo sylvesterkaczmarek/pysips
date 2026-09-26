@@ -41,7 +41,7 @@ def chain():
                                     np.array([[-1.], [-4.]]),
                                     np.array([[-1., -4.]])])
 @pytest.mark.parametrize("keyword", [False, True])
-def test_cached_values_are_accepted_without_initial_reevaluation(
+def test_cached_values_are_accepted_with_original_reevaluation(
         chain, cached, keyword):
     mcmc, _, proposal, calls = chain
     inputs = np.array([[1.], [2.]])
@@ -56,7 +56,7 @@ def test_cached_values_are_accepted_without_initial_reevaluation(
     np.testing.assert_array_equal(values, [[-1.], [-4.]])
     np.testing.assert_array_equal(cached, original)
     np.testing.assert_array_equal(proposal.gene_pool, inputs.ravel())
-    assert calls == []
+    assert calls == [1., 2.]
 
 
 @pytest.mark.parametrize("explicit_none", [False, True])
@@ -73,13 +73,15 @@ def test_no_cache_keeps_original_evaluation_path(chain, explicit_none):
     assert calls == [1., 2.]
 
 
-@pytest.mark.parametrize("cached", [[], [-1.], [-1., -4., -9.]])
-def test_wrong_cache_length_fails_before_mutation(chain, cached):
+@pytest.mark.parametrize("cached", [None, [-100., -400.], [float("nan"), 0.]])
+def test_initial_likelihoods_are_refit_rather_than_taken_from_cache(chain, cached):
     mcmc, _, proposal, calls = chain
-    with pytest.raises(ValueError, match="number inputs"):
-        mcmc.smc_metropolis(np.array([[1.], [2.]]), 2, None, cached)
-    assert calls == []
-    assert proposal.gene_pool is None
+    inputs = np.array([[1.], [2.]])
+    output, values = mcmc.smc_metropolis(inputs, 0, None, cached)
+    np.testing.assert_array_equal(output, inputs)
+    np.testing.assert_array_equal(values, [[-1.], [-4.]])
+    np.testing.assert_array_equal(proposal.gene_pool, inputs.ravel())
+    assert calls == [1., 2.]
 
 
 @pytest.mark.parametrize("num_samples", [0, 1, 3])
@@ -91,7 +93,7 @@ def test_current_smcpy_kernel_can_mutate_particles(chain, num_samples):
     params, values = kernel.mutate_particles(particles, num_samples, None)
     np.testing.assert_allclose(values.ravel(), -params["f"] ** 2)
     np.testing.assert_array_equal(proposal.gene_pool, params["f"])
-    assert len(calls) == 2 * num_samples
+    assert len(calls) == 2 * (num_samples + 1)
     np.testing.assert_array_equal(particles.params.ravel(), [1., 2.])
 
 
@@ -113,4 +115,4 @@ def test_cached_and_uncached_chains_have_identical_seeded_results(
     np.testing.assert_array_equal(actual_inputs, expected_inputs)
     np.testing.assert_array_equal(actual_likes, expected_likes)
     np.testing.assert_array_equal(proposal.gene_pool, actual_inputs.ravel())
-    assert len(calls) == expected_calls - len(inputs)
+    assert len(calls) == expected_calls
