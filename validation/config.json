@@ -1,0 +1,12 @@
+{
+  "issue": 10,
+  "issue_url": "https://github.com/nasa/pysips/issues/10",
+  "source": "d0526d5397cc527aca48790401d6e80f54a3bc38",
+  "base": "9a009911ba74b85fd2ddcc1ca7676c39bfea36e9",
+  "branch": "fix/smcpy-likelihood-cache-20260926",
+  "files": [
+    "pysips/metropolis.py",
+    "tests/unit/test_metropolis_cached_likelihoods.py"
+  ],
+  "name": "pysips"
+}
