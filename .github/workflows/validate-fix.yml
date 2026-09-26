@@ -20,8 +20,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: sylvesterkaczmarek/pysips
-          ref: d0526d5397cc527aca48790401d6e80f54a3bc38
-          fetch-depth: 2
+          ref: 62204e2a54540548f14b9c4e4487ade466209bf6
+          fetch-depth: 0
           path: source
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:

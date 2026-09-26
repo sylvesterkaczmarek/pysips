@@ -57,7 +57,8 @@ main_file = SOURCE / CONFIG["files"][0]
 fixed = main_file.read_bytes()
 
 if CONFIG["name"] == "pysips":
-    pytest_run("fixed-suite", ["tests"], (99, 0, 0, 0), coverage=True)
+    pytest_run("fixed-suite", ["tests"], (99, 0, 0, 0))
+    pytest_run("unit-integration-coverage", ["tests/unit", "tests/integration"], (96, 0, 0, 0), coverage=True)
     run("coverage-json", [PYTHON, "-m", "coverage", "json", "-o", str(EVIDENCE / "coverage.json")])
     run("pylint", [PYTHON, "-m", "pylint", "pysips", "--fail-under=10"])
     run("new-test-lint", [PYTHON, "-m", "flake8", CONFIG["files"][1], "--max-line-length=88"])
