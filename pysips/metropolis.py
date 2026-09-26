@@ -88,7 +88,7 @@ class Metropolis(VectorMCMC):
         )
         self._is_multiprocess = multiprocess
 
-    def smc_metropolis(self, inputs, num_samples, cov=None):
+    def smc_metropolis(self, inputs, num_samples, cov=None, log_likes=None):
         """
         Parameters
         ----------
@@ -96,8 +96,22 @@ class Metropolis(VectorMCMC):
             model at which Markov chain initiates
         num_samples : int
             number of samples in the chain; includes burnin
+        log_likes : array-like, optional
+            Initial log likelihoods, one per input particle. When provided,
+            reuse them instead of reevaluating the initial population.
         """
-        log_priors, log_like = self._initialize_probabilities(inputs)
+        if log_likes is None:
+            log_priors, log_like = self._initialize_probabilities(inputs)
+        else:
+            # Keep compatibility with older SMCPy initializers that only take inputs.
+            log_like = np.asarray(log_likes).reshape(-1, 1)
+            if log_like.shape[0] != inputs.shape[0]:
+                raise ValueError(
+                    "log_likes.shape[0] != number inputs: "
+                    f"{log_like.shape[0]} != {inputs.shape[0]}"
+                )
+            log_priors = self.evaluate_log_priors(inputs)
+            self._check_log_priors_for_zero_probability(log_priors)
 
         for _ in range(num_samples):
 
